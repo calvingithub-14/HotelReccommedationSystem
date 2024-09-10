@@ -97,3 +97,44 @@ if st.button('Get Recommendations'):
         st.write(recommendations.to_html(escape=False, index=False), unsafe_allow_html=True)
     else:
         st.write('No hotels found matching your preferences.')
+
+#df = pd.read_excel("HotelRecommend2.xlsx")
+df = pd.read_csv("HotelRecommend2.csv")
+#df = pd.read_csv("HoteRecommend_final.csv")
+
+#tfidf=TfidfVectorizer(max_features=1000)
+
+# Retrive Data Similiarity with Hotel City, Hotel Country and Hotel Amenities
+df['hotel_features'] = df['city'] + " " + df['country'] + " " + df['tags']
+tfidf_vectorizer = TfidfVectorizer(stop_words='english')
+tfidf_matrix = tfidf_vectorizer.fit_transform(df['hotel_features'])
+cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+
+def get_hotel_recommendations(hotelName, cosine_sim=cosine_sim):
+    try:
+        hotel_index = df[df['hotelname'] == hotelName].index[0]
+        similar_hotels = list(enumerate(cosine_sim[hotel_index])) # Algorithm Process 1
+        similar_hotels = sorted(similar_hotels, key=lambda x: x[1], reverse=True) # Algorithm Process 2
+
+        similar_hotels = similar_hotels[1:41]  # Top 40 similar hotels
+        recommended_hotels = [df['hotelname'].iloc[i[0]] + "\t Country: "  + df['country'].iloc[i[0]] for i in similar_hotels]
+
+        return recommended_hotels
+    
+    except IndexError:
+        return ["Hotel not found!"]
+
+st.subheader("Content-Based Filtering Module by Tee Zhen Yu")
+st.text("Description: Recommend Hotels With City and Room Amenities")
+
+hotelName = st.text_input("Enter Hotel Name for Content-Based Filtering")
+
+if st.button("Get Recommendation"):
+
+    if hotelName:
+        st.subheader(f"Hotels Similar To '{hotelName}':")
+        recommendation = get_hotel_recommendations(hotelName)
+
+        for hotel in recommendation:
+            st.write(f"Hotel: {hotel}")
