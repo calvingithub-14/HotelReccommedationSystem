@@ -147,3 +147,31 @@ if st.button("Get Recommendation"):
                     st.write(f"Similarity Rate: {similarity:.2f}")
                 except:
                     print("Rate Not Found")
+
+#Hybrid Module
+def hybrid_recommendation(hotel_name, type, country, city, property, starrating):
+
+    # Get content-based recommendations
+    content_recommendations = cbf_recommendations(hotel_name)
+    
+    # Get collaborative filtering recommendations
+    collaborative_recommendations = cf_recommend(type, country, city, property, starrating)
+    
+    # Combine the two recommendations (can use weighted average or intersection)
+    hybrid_recommendations = list(set(content_recommendations) | set(collaborative_recommendations))
+    
+    return hybrid_recommendations
+
+st.subheader("Hybrid Module by Lee Yuan Le")
+
+# Input for hotel name (for content-based filtering)
+hotel_name_input = st.selectbox("Enter Hotel Name for Recommendation", df['hotelname'].unique())
+
+# Generate hybrid recommendations
+if hotel_name_input:
+    hybrid_results = hybrid_recommendation(hotel_name_input, type, country, city, property, starrating)
+    
+    # Display recommendations
+    st.write(f"Hybrid Recommendations for '{hotel_name_input}'")
+    for hotel in hybrid_results:
+        st.write(hotel)
